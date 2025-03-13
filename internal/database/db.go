@@ -3,15 +3,16 @@ package database
 import (
 	"context"
 	"fmt"
+	"url-shortnere/config"
 	"url-shortnere/internal/models"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func ConnectDB(ctx context.Context) (*mongo.Database, error) {
+func ConnectDB(ctx context.Context, cfg *config.Config) (*mongo.Database, error) {
 	clientOptions := options.Client()
-	clientOptions.ApplyURI("mongodb://localhost:27017")
+	clientOptions.ApplyURI(cfg.DatabaseDSN)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		return nil, err
