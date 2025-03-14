@@ -23,21 +23,29 @@ func NewURLService(repo repository.URLRepository) *URLService {
 	}
 }
 
-func (s *URLService) ShortenUrl(ctx context.Context, longUrl string) (*models.UrlMapping, error) {
-	var url models.UrlMapping
-	shortUrl := utils.ShortenURLHash(longUrl)
+func (s *URLService) ShortenUrl(ctx context.Context, urlRequest models.UrlMappingRequest) (*models.UrlMapping, error) {
+	var shortUrl string
+
+	if urlRequest.CustomSlug != "" {
+		shortUrl = urlRequest.CustomSlug
+	} else {
+		shortUrl = utils.ShortenURLHash(urlRequest.LongURL)
+	}
 
 	exist, err := s.urlRepository.FindByShortURL(ctx, shortUrl)
 	if err != nil && err != mongo.ErrNoDocuments {
 		return nil, err
 	}
+	if exist != nil && urlRequest.LongURL != exist.LongURL {
+		return nil, errors.New("custom slug already exists")
+	}
 	if exist != nil {
-		return nil, errors.New("short url already exist")
+		return exist, nil
 	}
 
-	url = models.UrlMapping{
+	url := models.UrlMapping{
 		ShortURL:       shortUrl,
-		LongURL:        longUrl,
+		LongURL:        urlRequest.LongURL,
 		CreationDate:   time.Now(),
 		ExpirationDate: time.Now().AddDate(1, 0, 0),
 		ClickCount:     0,

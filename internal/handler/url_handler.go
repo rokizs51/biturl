@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"url-shortnere/internal/models"
 	"url-shortnere/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -19,9 +20,7 @@ func NewURLHandler(urlService service.URLService) *URLHandler {
 }
 
 func (h *URLHandler) ShortenUrl(c *gin.Context) {
-	var request struct {
-		LongURL string `json:"long_url"binding:"required"`
-	}
+	var request models.UrlMappingRequest
 	err := c.ShouldBindJSON(&request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -30,7 +29,7 @@ func (h *URLHandler) ShortenUrl(c *gin.Context) {
 		return
 	}
 
-	result, err := h.service.ShortenUrl(c.Request.Context(), request.LongURL)
+	result, err := h.service.ShortenUrl(c.Request.Context(), request)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

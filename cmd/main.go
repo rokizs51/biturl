@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
 	"url-shortnere/config"
 	"url-shortnere/internal/handler"
 	"url-shortnere/internal/middleware"
@@ -48,7 +49,18 @@ func main() {
 		})
 	})
 
-	router.POST("/reset-limiter", handler.ResetToken)
+	router.POST("/reset-limiter", func(c *gin.Context) {
+		service := service.NewRateLimiterService(&config.NewConfig().RateLimiterConfig)
+		identifier := c.ClientIP()
+		result := service.ResetToken(c, identifier)
+
+		if !result {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed resetting token"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "success resetting token"})
+	})
 	router.POST("/api/shorten", middleware.RateLimiter(cfg), urlHandler.ShortenUrl)
 	router.GET("/:shortURL", urlHandler.RedirectUrl)
 	log.Println("RUNING....")

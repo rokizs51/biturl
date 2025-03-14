@@ -9,3 +9,8 @@ type UrlMapping struct {
 	ExpirationDate time.Time `bson:"expiration_date"`
 	ClickCount     int       `bson:"click_count"`
 }
+
+type UrlMappingRequest struct {
+	LongURL    string `json:"long_url" binding:"required"`
+	CustomSlug string `json:"custom_slug"`
+}
